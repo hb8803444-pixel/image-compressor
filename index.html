@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Online Image Compressor & Resizer</title>
+    <meta name="description" content="Compress and resize your images, photos, and signatures online for free. Reduce image size in KB instantly.">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 700px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2c3a50;
+            font-size: 24px;
+        }
+        p {
+            text-align: center;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        .upload-box {
+            border: 2px dashed #3498db;
+            padding: 30px;
+            text-align: center;
+            border-radius: 8px;
+            background: #ecf0f1;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .btn {
+            background-color: #3498db;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .result {
+            margin-top: 25px;
+            text-align: center;
+        }
+        canvas {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Image Compressor & Resizer</h1>
+    <p>Upload your image to compress and download instantly</p>
+
+    <div class="upload-box" onclick="document.getElementById('imageInput').click()">
+        <p>📂 Click here to select an image</p>
+        <input type="file" id="imageInput" accept="image/*">
+    </div>
+
+    <div>
+        <label for="quality">Compression Quality (10% to 90%):</label>
+        <input type="range" id="quality" min="0.1" max="0.9" step="0.1" value="0.7" style="width:100%; margin: 15px 0;">
+    </div>
+
+    <button class="btn" onclick="compressImage()">Compress & Download</button>
+
+    <div class="result" id="output"></div>
+</div>
+
+<canvas id="canvas"></canvas>
+
+<script>
+    function compressImage() {
+        const fileInput = document.getElementById('imageInput');
+        const quality = document.getElementById('quality').value;
+        const output = document.getElementById('output');
+
+        if (fileInput.files.length === 0) {
+            alert('Please select an image first!');
+            return;
+        }
+
+        const file = fileInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+            const img = new Image();
+            img.src = event.target.result;
+
+            img.onload = function () {
+                const canvas = document.getElementById('canvas');
+                const ctx = canvas.getContext('2d');
+
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', parseFloat(quality));
+                
+                output.innerHTML = `<h3>Compressed Successfully!</h3><a href="${dataUrl}" download="compressed_image.jpg" class="btn" style="display:inline-block; text-decoration:none; background:#2ecc71;">Download Compressed Image</a>`;
+            }
+        }
+        reader.readAsDataURL(file);
+    }
+</script>
+
+</body>
+</html>
