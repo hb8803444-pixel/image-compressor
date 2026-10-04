@@ -1,10 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Online Image Compressor & Resizer</title>
-    <meta name="description" content="Compress and resize your images, photos, and signatures online for free. Reduce image size in KB instantly.">
+    <meta name="description" content="Compress and resize your images, photos, and signatures online for free with live preview.">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -23,7 +25,7 @@
         }
         h1 {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
             color: #2c3a50;
             font-size: 24px;
         }
@@ -34,7 +36,7 @@
         }
         .upload-box {
             border: 2px dashed #3498db;
-            padding: 30px;
+            padding: 25px;
             text-align: center;
             border-radius: 8px;
             background: #ecf0f1;
@@ -43,6 +45,18 @@
         }
         input[type="file"] {
             display: none;
+        }
+        .preview-container {
+            text-align: center;
+            margin: 15px 0;
+        }
+        .preview-container img {
+            max-width: 100%;
+            max-height: 250px;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+            padding: 4px;
+            background: #fff;
         }
         .btn {
             background-color: #3498db;
@@ -65,22 +79,34 @@
         canvas {
             display: none;
         }
+        .info {
+            font-size: 15px;
+            color: #444;
+            margin: 8px 0;
+        }
     </style>
 </head>
 <body>
 
 <div class="container">
     <h1>Image Compressor & Resizer</h1>
-    <p>Upload your image to compress and download instantly</p>
+    <p>Upload photo, see live preview, and reduce size instantly</p>
 
     <div class="upload-box" onclick="document.getElementById('imageInput').click()">
-        <p>📂 Click here to select an image</p>
-        <input type="file" id="imageInput" accept="image/*">
+        <p id="file-label">📂 Click here to select an image</p>
+        <input type="file" id="imageInput" accept="image/*" onchange="previewImage(event)">
     </div>
 
-    <div>
-        <label for="quality">Compression Quality (10% to 90%):</label>
-        <input type="range" id="quality" min="0.1" max="0.9" step="0.1" value="0.7" style="width:100%; margin: 15px 0;">
+    <!-- Live Image Preview Section -->
+    <div class="preview-container" id="previewBox" style="display:none;">
+        <p class="info"><strong>Uploaded Image Preview:</strong></p>
+        <img id="imagePreview" src="" alt="Preview">
+        <div id="original-info" class="info" style="margin-top:10px;"></div>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <label for="quality">Compression Quality (Lower = Smaller Size KB):</label>
+        <input type="range" id="quality" min="0.1" max="0.9" step="0.1" value="0.5" style="width:100%; margin: 15px 0;">
     </div>
 
     <button class="btn" onclick="compressImage()">Compress & Download</button>
@@ -91,9 +117,31 @@
 <canvas id="canvas"></canvas>
 
 <script>
+    function previewImage(event) {
+        const fileInput = document.getElementById('imageInput');
+        const previewBox = document.getElementById('previewBox');
+        const imagePreview = document.getElementById('imagePreview');
+        const originalInfo = document.getElementById('original-info');
+
+        if (fileInput.files.length > 0) {
+            const file = fileInput.files[0];
+            const sizeKB = (file.size / 1024).toFixed(2);
+            
+            document.getElementById('file-label').innerHTML = `✅ Selected: <strong>${file.name}</strong>`;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                previewBox.style.display = 'block';
+                originalInfo.innerHTML = `Original Size: <b>${sizeKB} KB</b>`;
+            }
+            reader.readAsDataURL(file);
+        }
+    }
+
     function compressImage() {
         const fileInput = document.getElementById('imageInput');
-        const quality = document.getElementById('quality').value;
+        const quality = parseFloat(document.getElementById('quality').value);
         const output = document.getElementById('output');
 
         if (fileInput.files.length === 0) {
@@ -117,9 +165,16 @@
 
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-                const dataUrl = canvas.toDataURL('image/jpeg', parseFloat(quality));
+                const dataUrl = canvas.toDataURL('image/jpeg', quality);
                 
-                output.innerHTML = `<h3>Compressed Successfully!</h3><a href="${dataUrl}" download="compressed_image.jpg" class="btn" style="display:inline-block; text-decoration:none; background:#2ecc71;">Download Compressed Image</a>`;
+                let head = 'data:image/jpeg;base64,';
+                let compressedSizeKB = Math.round((dataUrl.length - head.length) * 3/4 / 1024);
+
+                output.innerHTML = `
+                    <hr style="margin:20px 0; border:0; border-top:1px solid #eee;">
+                    <p class="info" style="color: #27ae60;">New Compressed Size: <b>${compressedSizeKB} KB</b></p>
+                    <a href="${dataUrl}" download="compressed_image.jpg" class="btn" style="display:inline-block; text-decoration:none; background:#2ecc71;">Download Compressed Image</a>
+                `;
             }
         }
         reader.readAsDataURL(file);
